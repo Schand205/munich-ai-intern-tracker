@@ -130,6 +130,7 @@ Fill in the frontend credentials in `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-public-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 ```
 
@@ -173,9 +174,12 @@ The workflow installs `backend/requirements.txt`, then runs [backend/main.py](..
 4. Add the **Environment Variables**:
 * `NEXT_PUBLIC_SUPABASE_URL`
 * `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+* `SUPABASE_SERVICE_ROLE_KEY`
 
 
 5. Click **Deploy**.
+
+The dashboard reads data through a Next.js API route at [frontend/src/app/api/jobs/route.ts](../frontend/src/app/api/jobs/route.ts), so the service role key must be available to the frontend server runtime. Keep it server-side only; do not expose it to the browser.
 
 ---
 
