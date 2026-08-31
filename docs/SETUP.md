@@ -147,7 +147,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🤖 Automated Scraping via GitHub Actions
 
-To run the scrapers automatically every 6 hours:
+The repository includes a scheduled workflow at [/.github/workflows/scrape.yml](../.github/workflows/scrape.yml) that runs every 6 hours and also supports manual dispatch.
+
+To enable it:
 
 1. Push your repository to **GitHub**.
 2. In your GitHub repo, go to **Settings > Secrets and variables > Actions**.
@@ -156,7 +158,10 @@ To run the scrapers automatically every 6 hours:
 * `SUPABASE_SERVICE_ROLE_KEY`
 
 
-4. Test the pipeline manually in GitHub under **Actions > Run Job Scrapers > Run workflow**.
+4. Open **Actions > Run Job Scrapers** and use **Run workflow** to test the pipeline manually.
+5. Confirm the scheduled runs are enabled on the workflow page after the first successful execution.
+
+The workflow installs `backend/requirements.txt`, then runs [backend/main.py](../backend/main.py) with the Supabase credentials injected from GitHub Secrets.
 
 ---
 
