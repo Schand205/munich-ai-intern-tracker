@@ -61,6 +61,9 @@ on public.jobs for update
 using (true)
 with check (true);
 
+grant select on public.jobs to anon;
+grant select, insert, update on public.jobs to service_role;
+
 ```
 
 3. Go to **Project Settings > API** and copy:
@@ -130,7 +133,6 @@ Fill in the frontend credentials in `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-public-key
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
 ```
 
@@ -143,6 +145,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+The dashboard is public read-only by design, so there is no login step before viewing jobs.
 
 ---
 
@@ -179,7 +183,13 @@ The workflow installs `backend/requirements.txt`, then runs [backend/main.py](..
 
 5. Click **Deploy**.
 
-The dashboard reads data through a Next.js API route at [frontend/src/app/api/jobs/route.ts](../frontend/src/app/api/jobs/route.ts), so the service role key must be available to the frontend server runtime. Keep it server-side only; do not expose it to the browser.
+The dashboard reads data through a Next.js API route at [frontend/src/app/api/jobs/route.ts](../frontend/src/app/api/jobs/route.ts). For the current read-only dashboard, that route uses the public anon key instead of a service role key, so `frontend/.env.local` only needs `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+Once deployed, the dashboard URL itself is the public entrypoint for viewers. No authentication flow is required for read-only access.
+
+The `grant` statements are needed because RLS policies do not replace table privileges. The public dashboard reads through `anon`, so `anon` needs `SELECT` on `public.jobs`. The backend scraper writes through `service_role`, so that role needs `SELECT`, `INSERT`, and `UPDATE` on `public.jobs` even when row-level security is enabled.
+
+If Supabase returns `permission denied for table jobs` on the dashboard, re-run the schema SQL and make sure the `grant select on public.jobs to anon;` line is included.
 
 ---
 

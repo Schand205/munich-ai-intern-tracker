@@ -9,8 +9,11 @@ from rich.table import Table
 
 from database import DatabaseError, get_database
 from models import JobRecord
+from scrapers.apple import AppleScraper
 from scrapers.amazon import AmazonScraper
 from scrapers.celonis import CelonisScraper
+from scrapers.microsoft import MicrosoftScraper
+from scrapers.nvidia import NvidiaScraper
 
 
 console = Console()
@@ -29,13 +32,16 @@ def _configure_logging() -> None:
 
 
 def collect_jobs() -> list[JobRecord]:
-    scrapers = [AmazonScraper(), CelonisScraper()]
+    scrapers = [AmazonScraper(), AppleScraper(), CelonisScraper(), MicrosoftScraper(), NvidiaScraper()]
     collected: list[JobRecord] = []
+    logger = logging.getLogger("munich_tracker.main")
 
     try:
         for scraper in scrapers:
             with scraper:
-                collected.extend(scraper.scrape())
+                source_jobs = scraper.scrape()
+                logger.info("%s source returned %s jobs.", scraper.company, len(source_jobs))
+                collected.extend(source_jobs)
     finally:
         for scraper in scrapers:
             scraper.close()

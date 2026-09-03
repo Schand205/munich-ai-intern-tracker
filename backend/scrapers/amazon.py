@@ -17,9 +17,14 @@ class AmazonScraper(BaseScraper):
     def fetch_raw_jobs(self) -> Sequence[Mapping[str, Any]]:
         search_variants: tuple[dict[str, Any], ...] = (
             {"offset": 0, "result_limit": 100, "sort": "recent", "country": "DE", "location": "Munich"},
-            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich AI internship"},
-            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich working student machine learning"},
-            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich thesis data science"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich AI"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich machine learning"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich generative AI"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich computer vision"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich data science"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich MLOps"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich applied scientist"},
+            {"offset": 0, "result_limit": 100, "sort": "recent", "keywords": "Munich research scientist"},
         )
 
         jobs: list[Mapping[str, Any]] = []

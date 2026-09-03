@@ -78,12 +78,29 @@ class SupabaseDatabase:
         total_upserted = 0
         for start in range(0, len(jobs), batch_size):
             batch = list(jobs[start : start + batch_size])
-            existing_by_id = self.fetch_existing_jobs([job.id for job in batch])
+            try:
+                existing_by_id = self.fetch_existing_jobs([job.id for job in batch])
+            except Exception as exc:  # pragma: no cover - runtime integration path
+                message = str(exc).lower()
+                if "permission denied" in message or "42501" in message:
+                    logger.warning(
+                        "Supabase denied SELECT on public.jobs. Continuing without status preservation. "
+                        "Run GRANT SELECT ON public.jobs TO service_role; to preserve existing job status values."
+                    )
+                    existing_by_id = {}
+                else:
+                    raise
             payloads = [self._merge_with_existing(job, existing_by_id.get(job.id)) for job in batch]
 
             try:
                 result = self.client.table("jobs").upsert(payloads, on_conflict="id").execute()
             except Exception as exc:  # pragma: no cover - runtime integration path
+                message = str(exc).lower()
+                if "permission denied" in message or "42501" in message:
+                    raise DatabaseError(
+                        "Supabase denied INSERT/UPDATE on public.jobs. "
+                        "Run `grant select, insert, update on public.jobs to service_role;` in the Supabase SQL editor."
+                    ) from exc
                 raise DatabaseError(f"Failed to upsert batch starting at index {start}: {exc}") from exc
 
             affected = len(result.data or payloads)

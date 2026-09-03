@@ -47,6 +47,15 @@ ROLE_KEYWORDS: dict[str, tuple[str, ...]] = {
         r"\bmaster thesis\b",
         r"\babschlussarbeit\b",
     ),
+    "Early Career": (
+        r"\bentry level\b",
+        r"\bjunior\b",
+        r"\bassociate\b",
+        r"\bnew grad\b",
+        r"\bgraduate\b",
+        r"\bearly career\b",
+        r"\brecent graduate\b",
+    ),
 }
 
 FIELD_PATTERNS: dict[str, tuple[str, ...]] = {
@@ -56,9 +65,15 @@ FIELD_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bgenerative ai\b",
         r"\bgenai\b",
         r"\bllm\b",
+        r"\bfoundation model\b",
+        r"\bagentic\b",
+        r"\btransformer\b",
         r"\bnlp\b",
         r"\bcomputer vision\b",
         r"\bmlops\b",
+        r"\bai applications?\b",
+        r"\bai platform\b",
+        r"\bai engineering\b",
     ),
     "Machine Learning": (
         r"\bmachine learning\b",
@@ -67,6 +82,9 @@ FIELD_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\brecommender\b",
         r"\bmodel training\b",
         r"\bml\b",
+        r"\bmodel serving\b",
+        r"\binference\b",
+        r"\bfeature engineering\b",
     ),
     "Data Science": (
         r"\bdata science\b",
@@ -76,6 +94,17 @@ FIELD_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bsql\b",
         r"\bexperiment\b",
         r"\bdata analysis\b",
+        r"\bdata platform\b",
+        r"\bdata engineering\b",
+    ),
+    "AI Research": (
+        r"\bresearch scientist\b",
+        r"\bapplied scientist\b",
+        r"\bresearch engineer\b",
+        r"\bresearch\b",
+        r"\bsimulation\b",
+        r"\bscientific computing\b",
+        r"\brobotics\b",
     ),
 }
 
@@ -83,7 +112,19 @@ FIELD_TAGS: dict[str, tuple[str, ...]] = {
     "AI Engineering": ("AI", "GenAI", "NLP", "Computer Vision", "MLOps"),
     "Machine Learning": ("ML", "Deep Learning", "Modeling", "Recommendation"),
     "Data Science": ("Data", "Analytics", "Statistics", "SQL"),
+    "AI Research": ("Research", "Applied Science", "Robotics", "Simulation"),
 }
+
+SENIORITY_EXCLUDE_PATTERNS: tuple[str, ...] = (
+    r"\bsenior\b",
+    r"\bprincipal\b",
+    r"\bstaff\b",
+    r"\blead\b",
+    r"\bhead\b",
+    r"\bdirector\b",
+)
+
+MAX_REQUIRED_EXPERIENCE_YEARS = 5.0
 
 
 def normalize_text(value: str | None) -> str:
@@ -118,11 +159,51 @@ def has_munich_location(*values: str | None) -> bool:
     return any(keyword in text for keyword in MUNICH_LOCATION_KEYWORDS)
 
 
+def is_ai_related(*values: str | None) -> bool:
+    text = normalize_text(" ".join(value or "" for value in values))
+    return _matches_any_pattern(text, tuple(pattern for patterns in FIELD_PATTERNS.values() for pattern in patterns))
+
+
+def _parse_experience_years(text: str) -> float | None:
+    patterns = (
+        r"(?:at least|minimum|min(?:imum)?|over|more than|up to|within|under|less than|\babout\b|around)?\s*(\d+(?:\.\d+)?)\s*(?:\+|to|\-|–)?\s*(\d+(?:\.\d+)?)?\s*(?:years?|yrs?)\s*(?:of)?\s*experience",
+        r"(\d+(?:\.\d+)?)\s*\+\s*(?:years?|yrs?)",
+        r"(?:at least|minimum|min(?:imum)?|over|more than|up to|within|under|less than)\s*(\d+(?:\.\d+)?)\s*(?:years?|yrs?)",
+        r"(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)\s*(?:years?|yrs?)",
+        r"(\d+(?:\.\d+)?)\s*(?:years?|yrs?)\s*(?:of)?\s*experience",
+    )
+
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+
+        numbers = [float(group) for group in match.groups() if group]
+        if not numbers:
+            continue
+        return max(numbers)
+
+    return None
+
+
+def has_acceptable_experience(*values: str | None) -> bool:
+    text = normalize_text(" ".join(value or "" for value in values))
+    if _matches_any_pattern(text, SENIORITY_EXCLUDE_PATTERNS):
+        return False
+
+    years = _parse_experience_years(text)
+    if years is None:
+        return True
+    return years < MAX_REQUIRED_EXPERIENCE_YEARS
+
+
 def infer_job_type(*values: str | None) -> str | None:
     text = normalize_text(" ".join(value or "" for value in values))
     for job_type, patterns in ROLE_KEYWORDS.items():
         if _matches_any_pattern(text, patterns):
             return job_type
+    if is_ai_related(text):
+        return "Professional"
     return None
 
 
@@ -131,6 +212,8 @@ def infer_category(*values: str | None) -> str | None:
     for category, patterns in FIELD_PATTERNS.items():
         if _matches_any_pattern(text, patterns):
             return category
+    if is_ai_related(text):
+        return "AI"
     return None
 
 
@@ -143,6 +226,8 @@ def extract_tags(*values: str | None) -> list[str]:
     for job_type, patterns in ROLE_KEYWORDS.items():
         if _matches_any_pattern(text, patterns):
             tags.append(job_type)
+    if has_acceptable_experience(text):
+        tags.append("Under 5 years")
     deduped: list[str] = []
     seen: set[str] = set()
     for tag in tags:
@@ -214,6 +299,12 @@ def normalize_candidate(
         return None
 
     if not has_munich_location(location, description, title):
+        return None
+
+    if not is_ai_related(title, description, location):
+        return None
+
+    if not has_acceptable_experience(title, description):
         return None
 
     job_type = infer_job_type(title, description)
