@@ -14,8 +14,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Munich AI/ML Tracker",
-  description: "Automated dashboard for AI, ML, and Data Science student roles in Munich.",
+  title: "Munich AI Jobs",
+  description: "A public dashboard for Munich AI, ML, research, and early-career roles.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

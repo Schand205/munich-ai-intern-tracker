@@ -8,9 +8,9 @@ import { buildFilterHref, type JobFilters } from "@/lib/job-filters";
 import type { JobRecord, JobsSummary } from "@/lib/jobs";
 
 const filterGroups = {
-  company: ["Amazon", "Celonis", "Apple", "Google", "Microsoft", "NVIDIA"],
-  job_type: ["Internship", "Working Student", "Thesis"],
-  category: ["AI Engineering", "Machine Learning", "Data Science"],
+  company: ["Amazon", "Apple", "Celonis", "Microsoft", "NVIDIA", "Google"],
+  job_type: ["Internship", "Working Student", "Early Career", "Professional", "Thesis"],
+  category: ["AI Engineering", "Applied AI", "Machine Learning", "AI Research", "Data Science"],
 } as const;
 
 type ApiResponse = {
@@ -83,7 +83,7 @@ export default function TrackerDashboard() {
   const { data, error, filters, loading } = useDashboardData();
   const latestJobs = data?.jobs.slice(0, 12) ?? [];
   const summary = data?.summary;
-  const activeFilters = Object.values(filters).filter(Boolean).length;
+  const focusBadges = ["Applied AI", "Machine Learning", "AI Research", "Under 5 years"];
 
   function updateSearch(next: JobFilters) {
     const params = new URLSearchParams(searchParams.toString());
@@ -112,237 +112,187 @@ export default function TrackerDashboard() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#081120] text-stone-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.16),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(56,189,248,0.12),_transparent_26%),linear-gradient(180deg,_rgba(8,17,32,1)_0%,_rgba(5,10,20,1)_100%)]" />
-      <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-amber-300/10 blur-3xl" />
+    <main className="relative min-h-screen overflow-hidden bg-[#07111f] text-stone-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.14),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(45,212,191,0.09),_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(96,165,250,0.12),_transparent_30%),linear-gradient(180deg,_rgba(7,17,31,1)_0%,_rgba(5,10,20,1)_100%)]" />
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="grid gap-4 lg:grid-cols-[1.5fr_0.85fr]">
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25)] backdrop-blur-xl sm:p-8">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.28em] text-stone-400">
+              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-amber-100">Public</span>
+              <span>Munich AI jobs</span>
+            </div>
+            <h1 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+              A focused board for Munich AI roles.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-300 sm:text-base">
+              The board now stays focused on applied AI, ML, research, and data roles in Munich that look early-career friendly or ask for under five years of experience.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {focusBadges.map((badge) => (
+                <span key={badge} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-stone-200">
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-[0_20px_80px_rgba(8,15,30,0.25)] backdrop-blur-xl lg:grid-cols-[1.5fr_1fr] lg:items-end">
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.45em] text-amber-200/80">Munich AI/ML Intern & Working Student Tracker</p>
-            <div className="max-w-3xl space-y-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Live opportunities for AI, ML, and Data Science roles in Munich.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-stone-300 sm:text-lg">
-                A focused dashboard for internships, working student roles, and thesis projects at companies that actually matter for Munich&apos;s AI market.
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <SimpleStat label="Jobs" value={summary?.total ?? 0} />
+            <SimpleStat label="Companies" value={summary?.companies ?? 0} />
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-5 shadow-sm backdrop-blur-xl">
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-stone-400">Scope</p>
+              <p className="mt-3 text-sm leading-6 text-stone-300">
+                Munich-linked roles from Amazon, Apple, Celonis, Microsoft, NVIDIA, and similar boards when they fit the AI and experience rules.
               </p>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <StatCard label="Matched roles" value={summary?.total.toString() ?? (loading ? "..." : "0")} accent="amber" />
-            <StatCard label="Active roles" value={summary?.active.toString() ?? (loading ? "..." : "0")} accent="cyan" />
-            <StatCard label="New today" value={summary?.newCount.toString() ?? (loading ? "..." : "0")} accent="emerald" />
-            <StatCard label="Companies" value={summary?.companies.toString() ?? (loading ? "..." : "0")} accent="rose" />
-          </div>
-        </header>
-
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_20px_80px_rgba(8,15,30,0.25)] backdrop-blur-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Search state</p>
-                <h2 className="mt-1 text-lg font-medium text-white">Filtered live board</h2>
-              </div>
-              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-stone-300">
-                {activeFilters ? `${activeFilters} active filters` : "No filters active"}
-              </div>
-            </div>
-
-            {error ? (
-              <div className="rounded-3xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">
-                {error}
-              </div>
-            ) : null}
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricTile label="New" value={summary?.newCount ?? 0} />
-              <MetricTile label="Bookmarked" value={summary?.bookmarked ?? 0} />
-              <MetricTile label="Applied" value={summary?.applied ?? 0} />
-              <MetricTile label="Latest 12 shown" value={Math.min(latestJobs.length, 12)} />
-            </div>
-
-            <div className="grid gap-3">
-              <label className="space-y-2 text-sm text-stone-300">
-                <span className="text-xs uppercase tracking-[0.35em] text-stone-500">Keyword search</span>
-                <form onSubmit={handleSearchSubmit} className="flex gap-2">
-                  <input type="hidden" name="company" value={filters.company ?? ""} />
-                  <input type="hidden" name="job_type" value={filters.job_type ?? ""} />
-                  <input type="hidden" name="category" value={filters.category ?? ""} />
-                  <input
-                    name="q"
-                    defaultValue={filters.q}
-                    placeholder="Search title, company, skill, location"
-                    className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-stone-100 outline-none ring-0 transition placeholder:text-stone-500 focus:border-amber-300/60"
-                  />
-                  <button className="rounded-2xl bg-amber-300 px-4 py-3 font-medium text-slate-950 transition hover:bg-amber-200">
-                    Search
-                  </button>
-                </form>
-              </label>
-
-              <div className="grid gap-3 xl:grid-cols-3">
-                <FilterPills title="Company" options={filterGroups.company} active={filters.company} param="company" current={filters} />
-                <FilterPills title="Role type" options={filterGroups.job_type} active={filters.job_type} param="job_type" current={filters} />
-                <FilterPills title="Field" options={filterGroups.category} active={filters.category} param="category" current={filters} />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-[0_20px_80px_rgba(8,15,30,0.25)] backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Distribution</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <DistributionCard title="Categories" rows={summary?.categories ?? []} />
-              <DistributionCard title="Role types" rows={summary?.jobTypes ?? []} />
             </div>
           </div>
         </section>
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/5 shadow-[0_20px_80px_rgba(8,15,30,0.25)] backdrop-blur-xl">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-stone-400">Latest jobs</p>
-              <h2 className="mt-1 text-xl font-medium text-white">Recent matches from the pipeline</h2>
+        {error ? (
+          <div className="rounded-[1.75rem] border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100">
+            {error}
+          </div>
+        ) : null}
+
+        <section className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-4 shadow-sm backdrop-blur-xl sm:p-5">
+          <form onSubmit={handleSearchSubmit} className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <input type="hidden" name="company" value={filters.company ?? ""} />
+            <input type="hidden" name="job_type" value={filters.job_type ?? ""} />
+            <input type="hidden" name="category" value={filters.category ?? ""} />
+            <div className="flex-1">
+              <label className="mb-2 block text-xs font-medium uppercase tracking-[0.24em] text-stone-400">Search</label>
+              <input
+                name="q"
+                defaultValue={filters.q}
+                placeholder="Try AI, Munich, ML engineer, research scientist..."
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/75 px-4 py-3 text-sm text-stone-100 outline-none placeholder:text-stone-500 focus:border-amber-300/60"
+              />
             </div>
-            <div className="text-sm text-stone-400">
-              {loading ? "Loading latest roles..." : `Showing ${latestJobs.length} of ${summary?.total ?? 0}`}
+            <button className="rounded-2xl bg-gradient-to-r from-amber-300 via-orange-400 to-teal-300 px-5 py-3 text-sm font-medium text-slate-950 transition hover:opacity-95">
+              Search
+            </button>
+          </form>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <SimplePillGroup label="Company" options={filterGroups.company} active={filters.company} param="company" current={filters} />
+            <SimplePillGroup label="Type" options={filterGroups.job_type} active={filters.job_type} param="job_type" current={filters} />
+            <SimplePillGroup label="Field" options={filterGroups.category} active={filters.category} param="category" current={filters} />
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-white/10 bg-white/[0.05] shadow-sm backdrop-blur-xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-6">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.22em] text-stone-400">Live results</h2>
+              <p className="mt-1 text-sm text-stone-300">{loading ? "Refreshing the board..." : `Showing ${latestJobs.length} of ${summary?.total ?? 0}`}</p>
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-stone-300">
+              {loading ? "Loading" : `${summary?.active ?? 0} active`}
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-white/10 text-left">
-              <thead className="text-xs uppercase tracking-[0.35em] text-stone-500">
-                <tr>
-                  <th className="px-5 py-4">Role</th>
-                  <th className="px-5 py-4">Company</th>
-                  <th className="px-5 py-4">Type</th>
-                  <th className="px-5 py-4">Category</th>
-                  <th className="px-5 py-4">Location</th>
-                  <th className="px-5 py-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10 text-sm text-stone-200">
-                {latestJobs.length ? (
-                  latestJobs.map((job) => (
-                    <tr key={job.id} className="align-top transition hover:bg-white/[0.03]">
-                      <td className="px-5 py-4">
-                        <a href={job.url} target="_blank" rel="noreferrer" className="font-medium text-white transition hover:text-amber-200">
-                          {job.title}
-                        </a>
-                        <p className="mt-1 max-w-2xl text-xs leading-6 text-stone-400">{job.description_summary ?? "No summary available yet."}</p>
-                      </td>
-                      <td className="px-5 py-4 text-stone-200">{job.company}</td>
-                      <td className="px-5 py-4">{job.job_type}</td>
-                      <td className="px-5 py-4">{job.category ?? "Uncategorized"}</td>
-                      <td className="px-5 py-4">{job.location ?? "Munich"}</td>
-                      <td className="px-5 py-4">
-                        <StatusBadge status={job.status ?? "NEW"} active={job.is_active !== false} />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="px-5 py-14 text-center text-stone-400" colSpan={6}>
-                      {loading ? "Loading jobs from Supabase..." : "No jobs match the current filters. Try clearing a chip or search term."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {latestJobs.length ? (
+            <div className="grid gap-4 p-4 sm:p-6 md:grid-cols-2 xl:grid-cols-3">
+              {latestJobs.map((job) => (
+                <article
+                  key={job.id}
+                  className="flex h-full flex-col rounded-[1.75rem] border border-white/10 bg-slate-950/60 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300/20 hover:bg-slate-950/80 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <a href={job.url} target="_blank" rel="noreferrer" className="block text-lg font-semibold leading-7 text-white hover:text-amber-200 hover:underline">
+                        {job.title}
+                      </a>
+                      <p className="mt-1 text-sm text-stone-300">{job.company}</p>
+                    </div>
+                    <StatusBadge status={job.status ?? "NEW"} active={job.is_active !== false} />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-300">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{job.job_type}</span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{job.category ?? "AI"}</span>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1">{job.location ?? "Munich"}</span>
+                  </div>
+
+                  <p className="mt-4 text-sm leading-6 text-stone-300">
+                    {job.description_summary || "A Munich-based role that fits the broader AI-focused board."}
+                  </p>
+
+                  {job.tags?.length ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {job.tags.slice(0, 4).map((tag) => (
+                        <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-stone-300">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-auto pt-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-400">
+                      <span>First seen {new Date(job.first_seen).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                      <a href={job.url} target="_blank" rel="noreferrer" className="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-medium text-amber-100 transition hover:bg-amber-300/20">
+                        Open job
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="px-4 py-12 text-center text-stone-400 sm:px-6">
+              {loading ? "Loading jobs from Supabase..." : "No jobs match the current filters."}
+            </div>
+          )}
         </section>
       </div>
     </main>
   );
 }
 
-function FilterPills({
-  title,
+function SimpleStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-4 shadow-sm backdrop-blur-xl">
+      <p className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400">{label}</p>
+      <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
+    </div>
+  );
+}
+
+function SimplePillGroup({
+  label,
   options,
   active,
   param,
   current,
 }: {
-  title: string;
+  label: string;
   options: readonly string[];
   active?: string;
   param: keyof JobFilters;
   current: JobFilters;
 }) {
   return (
-    <section className="rounded-[2rem] border border-white/10 bg-white/5 p-4 shadow-[0_20px_80px_rgba(8,15,30,0.25)] backdrop-blur-xl">
-      <p className="mb-3 text-xs uppercase tracking-[0.35em] text-stone-400">{title}</p>
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={buildFilterHref(current, { [param]: undefined })}
-          className={`rounded-full border px-3 py-1.5 text-sm transition ${!active ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/10 bg-white/5 text-stone-300 hover:border-white/25 hover:bg-white/10"}`}
-        >
-          All
-        </Link>
-        {options.map((option) => {
-          const isActive = active?.toLowerCase() === option.toLowerCase();
-          return (
-            <Link
-              key={option}
-              href={buildFilterHref(current, { [param]: option })}
-              className={`rounded-full border px-3 py-1.5 text-sm transition ${isActive ? "border-amber-300 bg-amber-300 text-slate-950" : "border-white/10 bg-white/5 text-stone-300 hover:border-white/25 hover:bg-white/10"}`}
-            >
-              {option}
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function StatCard({ label, value, accent }: { label: string; value: string; accent: "amber" | "cyan" | "emerald" | "rose" }) {
-  const accentClasses = {
-    amber: "from-amber-300/25 to-amber-300/5 text-amber-100",
-    cyan: "from-cyan-300/25 to-cyan-300/5 text-cyan-100",
-    emerald: "from-emerald-300/25 to-emerald-300/5 text-emerald-100",
-    rose: "from-rose-300/25 to-rose-300/5 text-rose-100",
-  };
-
-  return (
-    <div className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${accentClasses[accent]} p-4`}>
-      <p className="text-xs uppercase tracking-[0.35em] text-stone-400">{label}</p>
-      <div className="mt-3 text-3xl font-semibold text-white">{value}</div>
-    </div>
-  );
-}
-
-function MetricTile({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-      <p className="text-xs uppercase tracking-[0.35em] text-stone-500">{label}</p>
-      <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
-    </div>
-  );
-}
-
-function DistributionCard({ title, rows }: { title: string; rows: Array<{ label: string; count: number }> }) {
-  return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/45 p-4">
-      <p className="text-sm font-medium text-white">{title}</p>
-      <div className="mt-4 space-y-3">
-        {rows.length ? (
-          rows.slice(0, 6).map((row) => (
-            <div key={row.label} className="space-y-2">
-              <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-stone-300">{row.label}</span>
-                <span className="text-stone-500">{row.count}</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-orange-300 to-cyan-300" style={{ width: `${Math.min(100, Math.max(12, row.count * 12))}%` }} />
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-sm text-stone-500">No data yet.</p>
-        )}
-      </div>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400">{label}</span>
+      <Link
+        href={buildFilterHref(current, { [param]: undefined })}
+        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${!active ? "border-amber-300/40 bg-amber-300/15 text-amber-100" : "border-white/10 bg-white/5 text-stone-300 hover:border-white/20 hover:bg-white/10"}`}
+      >
+        All
+      </Link>
+      {options.map((option) => {
+        const isActive = active?.toLowerCase() === option.toLowerCase();
+        return (
+          <Link
+            key={option}
+            href={buildFilterHref(current, { [param]: option })}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${isActive ? "border-amber-300/40 bg-amber-300/15 text-amber-100" : "border-white/10 bg-white/5 text-stone-300 hover:border-white/20 hover:bg-white/10"}`}
+          >
+            {option}
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -350,21 +300,19 @@ function DistributionCard({ title, rows }: { title: string; rows: Array<{ label:
 function StatusBadge({ status, active }: { status: string; active: boolean }) {
   const normalized = status.toUpperCase();
   const styles: Record<string, string> = {
-    NEW: "border-amber-300/30 bg-amber-300/10 text-amber-100",
-    BOOKMARKED: "border-sky-300/30 bg-sky-300/10 text-sky-100",
-    APPLIED: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
-    INTERVIEW: "border-violet-300/30 bg-violet-300/10 text-violet-100",
-    REJECTED: "border-rose-300/30 bg-rose-300/10 text-rose-100",
+    NEW: "border-amber-200 bg-amber-100 text-amber-700",
+    BOOKMARKED: "border-sky-200 bg-sky-100 text-sky-700",
+    APPLIED: "border-emerald-200 bg-emerald-100 text-emerald-700",
+    INTERVIEW: "border-cyan-200 bg-cyan-100 text-cyan-700",
+    REJECTED: "border-rose-200 bg-rose-100 text-rose-700",
   };
 
   return (
     <div className="flex flex-wrap gap-2">
-      <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${styles[normalized] ?? "border-white/10 bg-white/5 text-stone-200"}`}>
+      <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${styles[normalized] ?? "border-white/10 bg-white/5 text-stone-300"}`}>
         {normalized}
       </span>
-      {!active ? (
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-stone-400">Inactive</span>
-      ) : null}
+      {!active ? <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-medium text-stone-400">Inactive</span> : null}
     </div>
   );
 }
